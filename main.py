@@ -98,7 +98,7 @@ def getCsv():
   df = pd.DataFrame(dataset)
   df.to_csv('movies_dataset.csv', index=False)
 
-def userProfile(moviesRated):
+def getUserProfile(moviesRated):
   global dfMovies
   # Leer el archivo CSV
   dfMovies = pd.read_csv('movies_dataset.csv')
@@ -137,7 +137,7 @@ def getScores(userProfile):
 def index(movies: List[MovieOnDB]):
   recommends = []
   
-  userProfile = userProfile(moviesRated)
+  userProfile = getUserProfile(moviesRated)
   scores = getScores(userProfile)
   # Imprimir los resultados para cada película
   sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
