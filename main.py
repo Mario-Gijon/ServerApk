@@ -98,6 +98,41 @@ def getCsv():
   df = pd.DataFrame(dataset)
   df.to_csv('movies_dataset.csv', index=False)
 
+def userProfile(moviesRated):
+  global dfMovies
+  # Leer el archivo CSV
+  dfMovies = pd.read_csv('movies_dataset.csv')
+  dfMovies['genre_id'] = dfMovies['genre_id'].apply(ast.literal_eval)
+  # Extraer los IDs y las puntuaciones de las películas de la lista de objetos MovieOnDB
+  movie_ids = [movie.idTmdb for movie in moviesRated]
+  ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
+  # Filtrar el DataFrame para obtener solo las películas en movie_ids
+  filteredMovies = dfMovies[dfMovies['id'].isin(movie_ids)]
+  # Crear una lista de filas para cada película y su rating
+  rows = []
+  for _, row in filteredMovies.iterrows():
+      for genre_id in row['genre_id']:
+          rows.append({'genre_id': genre_id, 'rating': ratings[row['id']]})
+  # Convertir las filas a un DataFrame
+  dfRatings = pd.DataFrame(rows)
+  # Agrupar por genre_id y sumar las puntuaciones
+  gender_counts = dfRatings.groupby('genre_id')['rating'].sum().to_dict()
+  # Imprimir el diccionario de puntuaciones por género
+  return gender_counts
+
+def getScores(userProfile):
+  global dfMovies
+  res = {}
+  for index, row in dfMovies.iterrows():
+      movie_id = row['id']
+      score = 0
+      for genre_id in row['genre_id']:
+          if genre_id in userProfile:
+              score += userProfile[genre_id]
+      res[movie_id] = score
+  return res
+
+
 @app.post("/recommender")
 def index(movies: List[MovieOnDB]):
   recommends = []
@@ -134,49 +169,15 @@ def allMovies():
   }
 
 
-def userProfile(moviesRated):
-  global dfMovies
-  # Leer el archivo CSV
-  dfMovies = pd.read_csv('movies_dataset.csv')
-  dfMovies['genre_id'] = dfMovies['genre_id'].apply(ast.literal_eval)
-  # Extraer los IDs y las puntuaciones de las películas de la lista de objetos MovieOnDB
-  movie_ids = [movie.idTmdb for movie in moviesRated]
-  ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
-  # Filtrar el DataFrame para obtener solo las películas en movie_ids
-  filteredMovies = dfMovies[dfMovies['id'].isin(movie_ids)]
-  # Crear una lista de filas para cada película y su rating
-  rows = []
-  for _, row in filteredMovies.iterrows():
-      for genre_id in row['genre_id']:
-          rows.append({'genre_id': genre_id, 'rating': ratings[row['id']]})
-  # Convertir las filas a un DataFrame
-  dfRatings = pd.DataFrame(rows)
-  # Agrupar por genre_id y sumar las puntuaciones
-  gender_counts = dfRatings.groupby('genre_id')['rating'].sum().to_dict()
-  # Imprimir el diccionario de puntuaciones por género
-  return gender_counts
-
-def getScores(userProfile):
-  global dfMovies
-  res = {}
-  for index, row in dfMovies.iterrows():
-      movie_id = row['id']
-      score = 0
-      for genre_id in row['genre_id']:
-          if genre_id in userProfile:
-              score += userProfile[genre_id]
-      res[movie_id] = score
-  return res
-
 if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
-  moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
-  userProfile = userProfile(moviesRated)
-  scores = getScores(userProfile)
+  #moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
+  #userProfile = userProfile(moviesRated)
+  #scores = getScores(userProfile)
   # Imprimir los resultados para cada película
-  sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  for id, score in sorted_movies:
-    print(str(id) + " - " + str(score))
+  #sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+  #for id, score in sorted_movies:
+  #  print(str(id) + " - " + str(score))
     #title = dfMovies[dfMovies['id'] == movie_id]['title'].iloc[0]
     #print(f"Score for movie '{title}' (ID: {movie_id}): {score}")
   
