@@ -16,7 +16,7 @@ class MovieOnDB(BaseModel):
 
 app = FastAPI()
 listOfAllMovies = []
-moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
+#moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
 dfMovies = None
 page = 1
 # Lista de géneros con sus id y nombres
@@ -134,7 +134,7 @@ def getScores(userProfile):
 
 
 @app.post("/recommender")
-def index(movies: List[MovieOnDB]):
+def index(moviesRated: List[MovieOnDB]):
   recommends = []
   
   userProfile = getUserProfile(moviesRated)
