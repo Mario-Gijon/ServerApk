@@ -141,22 +141,16 @@ def index(moviesRated: List[MovieOnDB]):
   scores = getScores(userProfile)
   # Imprimir los resultados para cada película
   sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  for id, score in sorted_movies:
+  filtered_movies = [(movie_id, score) for movie_id, score in sorted_movies if not any(movie_id == rated.idTmdb for rated in moviesRated)]
+
+  for id, score in filtered_movies:
     print(str(id) + " - " + str(score))
-    #logging.info(f"Received movie with idTmdb: {movie.idTmdb} and rate: {movie.rate}")
     recommend = {
       "id": str(id),
       "txt": f"Este es el texto de la película con id {id} y con un score de {score}."
     }
     recommends.append(recommend)
   
-  #for movie in movies:
-  #  logging.info(f"Received movie with idTmdb: {movie.idTmdb} and rate: {movie.rate}")
-  #  recommend = {
-  #      "id": str(movie.idTmdb),
-  #      "txt": f"Este es el texto de la película con id {movie.idTmdb}. Le diste un rate de {movie.rate}."
-  #  }
-  #  recommends.append(recommend)
 
   
   return {"Recommends": recommends}
@@ -171,5 +165,21 @@ def allMovies():
 
 if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
+  recommends = []
+  
+  userProfile = getUserProfile(moviesRated)
+  scores = getScores(userProfile)
+  # Imprimir los resultados para cada película
+  sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+  for id, score in sorted_movies:
+    print(str(id) + " - " + str(score))
+    #logging.info(f"Received movie with idTmdb: {movie.idTmdb} and rate: {movie.rate}")
+    recommend = {
+      "id": str(id),
+      "txt": f"Este es el texto de la película con id {id} y con un score de {score}."
+    }
+    recommends.append(recommend)
+
+  print(recommends)
 else:
   print("Error getting films from TMDB API")
