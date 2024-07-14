@@ -1,4 +1,4 @@
 # Ignora todos los archivos de texto
 *.csv
 infoMovies.py
-__pycache__
+__pycache__/
