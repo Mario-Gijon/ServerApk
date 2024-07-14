@@ -61,7 +61,7 @@ def getMoviesFromTmdbApi():
     headers=headers
   )
   if response.status_code == 200:
-    if page < 3:
+    if page < 90:
       listOfAllMovies.extend(response.json()['results'])
       print(f"Page {page} success")
       page += 1
@@ -171,15 +171,5 @@ def allMovies():
 
 if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
-  #moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
-  #userProfile = userProfile(moviesRated)
-  #scores = getScores(userProfile)
-  # Imprimir los resultados para cada película
-  #sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  #for id, score in sorted_movies:
-  #  print(str(id) + " - " + str(score))
-    #title = dfMovies[dfMovies['id'] == movie_id]['title'].iloc[0]
-    #print(f"Score for movie '{title}' (ID: {movie_id}): {score}")
-  
 else:
   print("Error getting films from TMDB API")
