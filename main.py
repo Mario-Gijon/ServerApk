@@ -165,6 +165,7 @@ def allMovies():
 
 if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
+  """
   recommends = []
   
   userProfile = getUserProfile(moviesRated)
@@ -181,5 +182,6 @@ if getMoviesFromTmdbApi():
     recommends.append(recommend)
 
   print(recommends)
+  """
 else:
   print("Error getting films from TMDB API")
