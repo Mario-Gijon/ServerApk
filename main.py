@@ -14,7 +14,7 @@ class MovieOnDB(BaseModel):
 
 
 
-#app = FastAPI()
+app = FastAPI()
 listOfAllMovies = []
 moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
 dfMovies = None
