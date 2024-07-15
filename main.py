@@ -72,6 +72,7 @@ def getMoviesFromTmdbApi():
 def getCsv():
   dataset = []
   global listOfAllMovies
+  global dfMovies
   
   for movie in listOfAllMovies:
     #keywords = next((item['keywords'] for item in listOfKeywords if item['id'] == movieId), [])
@@ -91,16 +92,16 @@ def getCsv():
     
     dataset.append(movieData)
     
-  df = pd.DataFrame(dataset)
-  df.to_csv('movies_dataset.csv', index=False)
+  dfMovies = pd.DataFrame(dataset)
+  dfMovies.to_csv('movies_dataset.csv', index=False)
 
 
 def getUserProfile(moviesRated):
   global dfMovies
   rows = []
 
-  dfMovies = pd.read_csv('movies_dataset.csv')
-  dfMovies['genre_id'] = dfMovies['genre_id'].apply(ast.literal_eval)
+  #dfMovies = pd.read_csv('movies_dataset.csv')
+  #dfMovies['genre_id'] = dfMovies['genre_id'].apply(ast.literal_eval)
 
   movieIds = [movie.idTmdb for movie in moviesRated]
   ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
