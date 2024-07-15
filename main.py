@@ -53,7 +53,7 @@ def getMoviesFromTmdbApi():
   response = requests.get(f"https://api.themoviedb.org/3/discover/movie?with_genres=10751&page={page}&sort_by=popularity.desc",headers=headers)
   if response.status_code == 200:
     
-    if page < 60:
+    if page < 90:
       listOfAllMovies.extend(response.json()['results'])
       print(f"Page {page} success")
       page += 1
