@@ -74,9 +74,9 @@ def getCsv():
   global listOfAllMovies
   
   for movie in listOfAllMovies:
-    #keywords = next((item['keywords'] for item in listOfKeywords if item['id'] == movie_id), [])
-    #reviews = next((item['results'] for item in listOfReviews if item['id'] == movie_id), [])
-    movie_data = {
+    #keywords = next((item['keywords'] for item in listOfKeywords if item['id'] == movieId), [])
+    #reviews = next((item['results'] for item in listOfReviews if item['id'] == movieId), [])
+    movieData = {
       'id': movie['id'],
       'title': movie['title'],
       #'overview': movie['overview'],
@@ -89,7 +89,7 @@ def getCsv():
       #'reviews': [{'author': review['author'], 'content': review['content'], 'rating': review['author_details'].get('rating')} for review in reviews]
     }
     
-    dataset.append(movie_data)
+    dataset.append(movieData)
     
   df = pd.DataFrame(dataset)
   df.to_csv('movies_dataset.csv', index=False)
@@ -102,19 +102,19 @@ def getUserProfile(moviesRated):
   dfMovies = pd.read_csv('movies_dataset.csv')
   dfMovies['genre_id'] = dfMovies['genre_id'].apply(ast.literal_eval)
 
-  movie_ids = [movie.idTmdb for movie in moviesRated]
+  movieIds = [movie.idTmdb for movie in moviesRated]
   ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
 
-  filteredMovies = dfMovies[dfMovies['id'].isin(movie_ids)]
+  filteredMovies = dfMovies[dfMovies['id'].isin(movieIds)]
 
   for _, row in filteredMovies.iterrows():
     for genre_id in row['genre_id']:
       rows.append({'genre_id': genre_id, 'rating': ratings[row['id']]})
 
   dfRatings = pd.DataFrame(rows)
-  gender_counts = dfRatings.groupby('genre_id')['rating'].sum().to_dict()
+  genderCounts = dfRatings.groupby('genre_id')['rating'].sum().to_dict()
 
-  return gender_counts
+  return genderCounts
 
 
 def getScores(userProfile):
@@ -122,14 +122,14 @@ def getScores(userProfile):
   res = {}
   
   for index, row in dfMovies.iterrows():
-    movie_id = row['id']
+    movieId = row['id']
     score = 0
     
-    for genre_id in row['genre_id']:
-      if genre_id in userProfile:
-        score += userProfile[genre_id]
+    for genreId in row['genre_id']:
+      if genreId in userProfile:
+        score += userProfile[genreId]
         
-    res[movie_id] = score
+    res[movieId] = score
     
   return res
 
@@ -141,10 +141,10 @@ def index(moviesRated: List[MovieOnDB]):
   userProfile = getUserProfile(moviesRated)
   scores = getScores(userProfile)
   
-  sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  filtered_movies = [(movie_id, score) for movie_id, score in sorted_movies if not any(movie_id == rated.idTmdb for rated in moviesRated)]
+  sortedMovies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+  filteredMovies = [(movieId, score) for movieId, score in sortedMovies if not any(movieId == rated.idTmdb for rated in moviesRated)]
 
-  for id, score in filtered_movies:
+  for id, score in filteredMovies:
     #print(str(id) + " - " + str(score))
     recommend = {
       "id": str(id),
@@ -166,16 +166,15 @@ def allMovies():
 if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
   
-  """
-  Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
+  #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
   recommends = []
   moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
   
   userProfile = getUserProfile(moviesRated)
   scores = getScores(userProfile)
   
-  sorted_movies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  for id, score in sorted_movies:
+  sortedMovies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+  for id, score in sortedMovies:
     print(str(id) + " - " + str(score))
     recommend = {
       "id": str(id),
@@ -184,7 +183,7 @@ if getMoviesFromTmdbApi():
     recommends.append(recommend)
 
   print(recommends)
-  """
+  
   
 else:
   print("Error getting films from TMDB API")
