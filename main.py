@@ -100,9 +100,6 @@ def getUserProfile(moviesRated):
   global dfMovies
   rows = []
 
-  #dfMovies = pd.read_csv('movies_dataset.csv')
-  #dfMovies['genre_id'] = dfMovies['genre_id'].apply(ast.literal_eval)
-
   movieIds = [movie.idTmdb for movie in moviesRated]
   ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
 
