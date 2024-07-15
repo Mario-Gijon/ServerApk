@@ -167,6 +167,7 @@ if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
   
   #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
+  """
   recommends = []
   moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
   
@@ -183,7 +184,7 @@ if getMoviesFromTmdbApi():
     recommends.append(recommend)
 
   print(recommends)
-  
+  """
   
 else:
   print("Error getting films from TMDB API")
