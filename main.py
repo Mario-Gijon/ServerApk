@@ -49,8 +49,8 @@ def getMoviesFromTmdbApi():
     "with_genres": "10751",
     "language": "en-US",
   }
-  #response = requests.get(f"https://api.themoviedb.org/3/discover/movie?with_genres=10751&page={page}&sort_by=popularity.desc",headers=headers)
-  response = requests.get(f"https://api.themoviedb.org/3/discover/movie?page={page}&sort_by=popularity.desc",headers=headers)
+  response = requests.get(f"https://api.themoviedb.org/3/discover/movie?with_genres=10751&page={page}&sort_by=popularity.desc",headers=headers)
+  #response = requests.get(f"https://api.themoviedb.org/3/discover/movie?page={page}&sort_by=popularity.desc",headers=headers)
   if response.status_code == 200:
     
     if page < 90:
