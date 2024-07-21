@@ -53,7 +53,7 @@ def getMoviesFromTmdbApi():
   response = requests.get(f"https://api.themoviedb.org/3/discover/movie?with_genres=10751&page={page}&sort_by=popularity.desc",headers=headers)
   if response.status_code == 200:
     
-    if page < 90:
+    if page < 2:
       listOfAllMovies.extend(response.json()['results'])
       print(f"Page {page} success")
       page += 1
@@ -98,58 +98,67 @@ def getCsv():
 
 def getUserProfile(moviesRated):
   global dfMovies
-  rows = []
 
+  # Extraer los ids de las películas valoradas y sus ratings
   movieIds = [movie.idTmdb for movie in moviesRated]
   ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
 
-  filteredMovies = dfMovies[dfMovies['id'].isin(movieIds)]
+  # Filtrar el DataFrame de películas para incluir solo las películas valoradas por el usuario
+  filteredMovies = dfMovies[dfMovies['id'].isin(movieIds)].copy()
 
-  for _, row in filteredMovies.iterrows():
-    for genre_id in row['genre_id']:
-      rows.append({'genre_id': genre_id, 'rating': ratings[row['id']]})
+  # Expandir las listas de géneros en filas separadas
+  filteredMovies = filteredMovies.explode('genre_id')
 
-  dfRatings = pd.DataFrame(rows)
-  genderCounts = dfRatings.groupby('genre_id')['rating'].sum().to_dict()
+  # Añadir las calificaciones correspondientes a cada fila de película
+  filteredMovies['rating'] = filteredMovies['id'].map(ratings)
+
+  # Agrupar por género y sumar las calificaciones para crear el perfil del usuario
+  genderCounts = filteredMovies.groupby('genre_id')['rating'].sum().to_dict()
 
   return genderCounts
 
 
 def getScores(userProfile):
   global dfMovies
-  res = {}
-  
-  for index, row in dfMovies.iterrows():
-    movieId = row['id']
-    score = 0
-    
-    for genreId in row['genre_id']:
-      if genreId in userProfile:
-        score += userProfile[genreId]
-        
-    res[movieId] = score
-    
-  return res
+
+  # Crear una Serie de pandas a partir del userProfile para facilitar la operación de mapeo
+  userProfileSeries = pd.Series(userProfile)
+
+  # Expandir las filas por géneros
+  dfExploded = dfMovies.explode('genre_id')
+
+  # Mapear los géneros al perfil de usuario y llenar con 0 donde no haya coincidencias
+  dfExploded['genre_score'] = dfExploded['genre_id'].map(userProfileSeries).fillna(0)
+
+  # Agrupar por id de película, sumar los scores de los géneros y convertir en diccionario
+  movieScores = dfExploded.groupby('id')['genre_score'].sum().astype(int).to_dict()
+
+  return movieScores
 
 
 @app.post("/recommender")
 def index(moviesRated: List[MovieOnDB]):
-  recommends = []
-  
+  # Obtener el perfil del usuario basado en las películas calificadas
   userProfile = getUserProfile(moviesRated)
+  # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
   scores = getScores(userProfile)
   
-  sortedMovies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  filteredMovies = [(movieId, score) for movieId, score in sortedMovies if not any(movieId == rated.idTmdb for rated in moviesRated)]
-
-  for id, score in filteredMovies:
-    #print(str(id) + " - " + str(score))
-    recommend = {
-      "id": str(id),
-      "txt": f"Este es el texto de la película con id {id}, con un score de {score}."
-    }  
-    recommends.append(recommend)
+  # Convertir la lista de IDs de películas calificadas a un conjunto para un acceso más rápido
+  ratedMoviesIds = {movie.idTmdb for movie in moviesRated}
   
+  # Ordenar y filtrar las películas en una sola pasada
+  filtered_sorted_movies = [
+    (movieId, score) for movieId, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    if movieId not in ratedMoviesIds
+  ]
+
+  # Crear la lista de recomendaciones con el formato {id, txt}
+  recommends = [
+    {"id": str(id), "txt": f"Este es el texto de la película con id {id}, con un score de {score}."}
+    for id, score in filtered_sorted_movies
+  ]
+  
+  # Devolver la lista de recomendaciones como JSON
   return {"Recommends": recommends}
 
 
