@@ -1,0 +1,44 @@
+{
+    "Recommends": [
+        {
+            "id": "350650",
+            "txt": "Este es el texto de la película con id 350650 y con un score de 135."
+        },
+        {
+            "id": "10957",
+            "txt": "Este es el texto de la película con id 10957 y con un score de 108."
+        },
+        {
+            "id": "25741",
+            "txt": "Este es el texto de la película con id 25741 y con un score de 108."
+        },
+        {
+            "id": "422803",
+            "txt": "Este es el texto de la película con id 422803 y con un score de 108."
+        },
+        {
+            "id": "587562",
+            "txt": "Este es el texto de la película con id 587562 y con un score de 108."
+        },
+        {
+            "id": "12335",
+            "txt": "Este es el texto de la película con id 12335 y con un score de 90."
+        },
+        {
+            "id": "12903",
+            "txt": "Este es el texto de la película con id 12903 y con un score de 90."
+        },
+        {
+            "id": "13355",
+            "txt": "Este es el texto de la película con id 13355 y con un score de 90."
+        },
+        {
+            "id": "15511",
+            "txt": "Este es el texto de la película con id 15511 y con un score de 90."
+        },
+        {
+            "id": "25523",
+            "txt": "Este es el texto de la película con id 25523 y con un score de 90."
+        }
+    ]
+}

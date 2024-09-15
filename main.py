@@ -5,6 +5,7 @@ import logging
 import requests
 import pandas as pd
 import ast
+import json
 
 logging.basicConfig(level=logging.INFO) 
 app = FastAPI()
@@ -138,6 +139,7 @@ def getScores(userProfile):
 
 @app.post("/recommender")
 def index(moviesRated: List[MovieOnDB]):
+  print(moviesRated)
   # Obtener el perfil del usuario basado en las películas calificadas
   userProfile = getUserProfile(moviesRated)
   # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
@@ -173,8 +175,8 @@ def allMovies():
 if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
   
-  #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
-  """
+  """ #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
+  
   recommends = []
   moviesRated: List[MovieOnDB] = [MovieOnDB(idTmdb=502356, rate=4), MovieOnDB(idTmdb=1022789, rate=5)]
   
@@ -182,7 +184,7 @@ if getMoviesFromTmdbApi():
   scores = getScores(userProfile)
   
   sortedMovies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  for id, score in sortedMovies:
+  for id, score in sortedMovies[:10]:
     print(str(id) + " - " + str(score))
     recommend = {
       "id": str(id),
@@ -191,7 +193,15 @@ if getMoviesFromTmdbApi():
     recommends.append(recommend)
 
   print(recommends)
-  """
+  
+  # Devuelve la lista de recomendaciones en formato JSON
+  recommendations_json = {"Recommends": recommends}
+
+  # Guarda las recomendaciones en un archivo JSON
+  with open('recommendations.json', 'w', encoding='utf-8') as json_file:
+      json.dump(recommendations_json, json_file, ensure_ascii=False, indent=4) """
+
+ 
   
 else:
   print("Error getting films from TMDB API")
