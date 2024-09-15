@@ -1,6 +1,2 @@
 *.csv
 infoMovies.py
-__pycache__/
-recommendations.json
-responseTMDB.json
-moviesRated.json
