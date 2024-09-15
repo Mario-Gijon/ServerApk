@@ -5,7 +5,6 @@ import logging
 import requests
 import pandas as pd
 import ast
-import json
 
 logging.basicConfig(level=logging.INFO) 
 app = FastAPI()
