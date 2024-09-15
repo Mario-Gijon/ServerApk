@@ -139,7 +139,6 @@ def getScores(userProfile):
 
 @app.post("/recommender")
 def index(moviesRated: List[MovieOnDB]):
-  print(moviesRated)
   # Obtener el perfil del usuario basado en las películas calificadas
   userProfile = getUserProfile(moviesRated)
   # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
@@ -176,7 +175,8 @@ if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
   
   #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
-  """ recommends = []
+  """
+  recommends = []
   moviesRated: List[MovieOnDB] = [
     MovieOnDB(idTmdb=502356, rate=4),
     MovieOnDB(idTmdb=1022789, rate=5),
@@ -189,13 +189,6 @@ if getMoviesFromTmdbApi():
     MovieOnDB(idTmdb=10837, rate=3),
     MovieOnDB(idTmdb=12903, rate=3),
     ]
-  
-  # Convierte la lista de MovieOnDB en un diccionario para facilitar su conversión a JSON
-  movies_dict = [movie.dict() for movie in moviesRated]
-  
-  # Guardar el JSON en un archivo
-  with open('moviesRated.json', 'w', encoding='utf-8') as json_file:
-      json.dump(movies_dict, json_file, ensure_ascii=False, indent=4)
   
   userProfile = getUserProfile(moviesRated)
   scores = getScores(userProfile)
@@ -210,13 +203,7 @@ if getMoviesFromTmdbApi():
     recommends.append(recommend)
 
   print(recommends)
-  
-  # Devuelve la lista de recomendaciones en formato JSON
-  recommendations_json = {"Recommends": recommends}
-
-  # Guarda las recomendaciones en un archivo JSON
-  with open('recommendations.json', 'w', encoding='utf-8') as json_file:
-      json.dump(recommendations_json, json_file, ensure_ascii=False, indent=4) """
+  """
   
 else:
   print("Error getting films from TMDB API")
