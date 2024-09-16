@@ -161,7 +161,7 @@ def index(moviesRated: List[MovieOnDB]):
       "txt": f"Este es el texto de la película con id {id}, con un score de {score}.",
       "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
       }
-    for id, score in filtered_sorted_movies
+    for id, score in filtered_sorted_movies[:10]
   ]
   
   # Devolver la lista de recomendaciones como JSON
