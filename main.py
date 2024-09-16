@@ -38,6 +38,7 @@ genres_dict = {genre['id']: genre['name'] for genre in genres_list}
 listOfAllMovies = []
 dfMovies = None
 page = 1
+IMG_PATH = "https://image.tmdb.org/t/p/original"
 
 
 def getMoviesFromTmdbApi():
@@ -84,6 +85,7 @@ def getCsv():
       #'release_date': movie['release_date'],
       'genre_id': movie['genre_ids'],
       'genre_name': [genres_dict[genre_id] for genre_id in movie['genre_ids']],
+      'poster_path': IMG_PATH+movie['poster_path'],
       #'vote_average': movie['vote_average'],
       #'vote_count': movie['vote_count'],
       #'keywords': [keyword['name'] for keyword in keywords],
@@ -154,7 +156,11 @@ def index(moviesRated: List[MovieOnDB]):
 
   # Crear la lista de recomendaciones con el formato {id, txt}
   recommends = [
-    {"id": str(id), "txt": f"Este es el texto de la película con id {id}, con un score de {score}."}
+    {
+      "id": str(id),
+      "txt": f"Este es el texto de la película con id {id}, con un score de {score}.",
+      "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
+      }
     for id, score in filtered_sorted_movies
   ]
   
@@ -174,8 +180,8 @@ if getMoviesFromTmdbApi():
   print("Conection to TMDB -> success")
   
   #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
-  """
-  recommends = []
+  
+  """ recommends = []
   moviesRated: List[MovieOnDB] = [
     MovieOnDB(idTmdb=502356, rate=4),
     MovieOnDB(idTmdb=1022789, rate=5),
@@ -193,16 +199,18 @@ if getMoviesFromTmdbApi():
   scores = getScores(userProfile)
   
   sortedMovies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+  
   for id, score in sortedMovies[:10]:
-    print(str(id) + " - " + str(score))
+    #print(str(id) + " - " + str(score))
     recommend = {
       "id": str(id),
-      "txt": f"Este es el texto de la película con id {id} y con un score de {score}."
+      "txt": f"Este es el texto de la película con id {id} y con un score de {score}.",
+      "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
     }
     recommends.append(recommend)
-
-  print(recommends)
-  """
+    
+  print(recommends) """
+ 
   
 else:
   print("Error getting films from TMDB API")
