@@ -5,9 +5,20 @@ import logging
 import requests
 import pandas as pd
 import ast
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List
 
 logging.basicConfig(level=logging.INFO) 
 app = FastAPI()
+
+# Configuración de CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permitir todos los orígenes (puedes especificar dominios específicos si lo prefieres)
+    allow_credentials=True,
+    allow_methods=["*"],  # Permitir todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permitir todos los encabezados
+)
 
 class MovieOnDB(BaseModel):
   idTmdb: int
@@ -47,11 +58,9 @@ def getMoviesFromTmdbApi():
   headers = {
     "accept": "application/json",
     "Authorization": "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyOTU1OGE0YmQxYmNlYWU5NTUwMmFlNjgzMDEwMzhlYiIsIm5iZiI6MTcxOTMyODAxMi43NTk2OTYsInN1YiI6IjY2MjFhZTRjYmIxMDU3MDE4OWQyNGY4MiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.B-Ad3TSiycU0-qSZsE8w4p9x2dpWZ0BP9WZaf5y0Xfw",
-    "with_genres": "10751",
-    "language": "en-US",
   }
-  response = requests.get(f"https://api.themoviedb.org/3/discover/movie?with_genres=10751&page={page}&sort_by=popularity.desc",headers=headers)
-  #response = requests.get(f"https://api.themoviedb.org/3/discover/movie?page={page}&sort_by=popularity.desc",headers=headers)
+  response = requests.get(f"https://api.themoviedb.org/3/discover/movie?with_genres=10751&language=es-ES&page={page}&sort_by=popularity.desc",headers=headers)
+  
   if response.status_code == 200:
     
     if page < 90:
@@ -76,6 +85,8 @@ def getCsv():
   global dfMovies
   
   for movie in listOfAllMovies:
+    if movie['poster_path'] is None:
+      continue
     #keywords = next((item['keywords'] for item in listOfKeywords if item['id'] == movieId), [])
     #reviews = next((item['results'] for item in listOfReviews if item['id'] == movieId), [])
     movieData = {
@@ -85,7 +96,7 @@ def getCsv():
       #'release_date': movie['release_date'],
       'genre_id': movie['genre_ids'],
       'genre_name': [genres_dict[genre_id] for genre_id in movie['genre_ids']],
-      'poster_path': IMG_PATH+movie['poster_path'],
+      'poster_path': IMG_PATH + movie['poster_path'] if movie['poster_path'] else 'No Image'
       #'vote_average': movie['vote_average'],
       #'vote_count': movie['vote_count'],
       #'keywords': [keyword['name'] for keyword in keywords],
@@ -181,7 +192,7 @@ if getMoviesFromTmdbApi():
   
   #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
   
-  """ recommends = []
+  recommends = []
   moviesRated: List[MovieOnDB] = [
     MovieOnDB(idTmdb=502356, rate=4),
     MovieOnDB(idTmdb=1022789, rate=5),
@@ -209,7 +220,7 @@ if getMoviesFromTmdbApi():
     }
     recommends.append(recommend)
     
-  print(recommends) """
+  print(recommends)
  
   
 else:
