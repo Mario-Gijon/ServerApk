@@ -25,25 +25,25 @@ class MovieOnDB(BaseModel):
   rate: int
 
 genres_list = [
-  {"id": 28, "name": "Action"},
-  {"id": 12, "name": "Adventure"},
-  {"id": 16, "name": "Animation"},
-  {"id": 35, "name": "Comedy"},
-  {"id": 80, "name": "Crime"},
-  {"id": 99, "name": "Documentary"},
-  {"id": 18, "name": "Drama"},
-  {"id": 10751, "name": "Family"},
-  {"id": 14, "name": "Fantasy"},
-  {"id": 36, "name": "History"},
-  {"id": 27, "name": "Horror"},
-  {"id": 10402, "name": "Music"},
-  {"id": 9648, "name": "Mystery"},
-  {"id": 10749, "name": "Romance"},
-  {"id": 878, "name": "Science Fiction"},
-  {"id": 10770, "name": "TV Movie"},
-  {"id": 53, "name": "Thriller"},
-  {"id": 10752, "name": "War"},
-  {"id": 37, "name": "Western"}
+    {"id": 28, "name": "Acción"},
+    {"id": 12, "name": "Aventura"},
+    {"id": 16, "name": "Animación"},
+    {"id": 35, "name": "Comedia"},
+    {"id": 80, "name": "Crimen"},
+    {"id": 99, "name": "Documental"},
+    {"id": 18, "name": "Drama"},
+    {"id": 10751, "name": "Familia"},
+    {"id": 14, "name": "Fantasía"},
+    {"id": 36, "name": "Historia"},
+    {"id": 27, "name": "Terror"},
+    {"id": 10402, "name": "Música"},
+    {"id": 9648, "name": "Misterio"},
+    {"id": 10749, "name": "Romance"},
+    {"id": 878, "name": "Ciencia Ficción"},
+    {"id": 10770, "name": "Película para TV"},
+    {"id": 53, "name": "Suspenso"},
+    {"id": 10752, "name": "Guerra"},
+    {"id": 37, "name": "Western"}
 ]
 genres_dict = {genre['id']: genre['name'] for genre in genres_list}
 listOfAllMovies = []
@@ -94,8 +94,8 @@ def getCsv():
       'title': movie['title'],
       #'overview': movie['overview'],
       #'release_date': movie['release_date'],
-      'genre_id': movie['genre_ids'],
-      'genre_name': [genres_dict[genre_id] for genre_id in movie['genre_ids']],
+      'genre_ids': movie['genre_ids'],
+      #'genre_name': [genres_dict[genre_id] for genre_id in movie['genre_ids']],
       'poster_path': IMG_PATH + movie['poster_path'] if movie['poster_path'] else 'No Image'
       #'vote_average': movie['vote_average'],
       #'vote_count': movie['vote_count'],
@@ -110,73 +110,103 @@ def getCsv():
 
 
 def getUserProfile(moviesRated):
-  global dfMovies
+    global dfMovies
 
-  # Extraer los ids de las películas valoradas y sus ratings
-  movieIds = [movie.idTmdb for movie in moviesRated]
-  ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
+    # Extraer los ids de las películas valoradas y sus ratings
+    movieIds = [movie.idTmdb for movie in moviesRated]
+    ratings = {movie.idTmdb: movie.rate for movie in moviesRated}
 
-  # Filtrar el DataFrame de películas para incluir solo las películas valoradas por el usuario
-  filteredMovies = dfMovies[dfMovies['id'].isin(movieIds)].copy()
+    # Filtrar el DataFrame de películas para incluir solo las películas valoradas por el usuario
+    filteredMovies = dfMovies[dfMovies['id'].isin(movieIds)].copy()
 
-  # Expandir las listas de géneros en filas separadas
-  filteredMovies = filteredMovies.explode('genre_id')
+    # Expandir las listas de géneros en filas separadas
+    filteredMovies = filteredMovies.explode('genre_ids')
 
-  # Añadir las calificaciones correspondientes a cada fila de película
-  filteredMovies['rating'] = filteredMovies['id'].map(ratings)
+    # Añadir las calificaciones correspondientes a cada fila de película
+    filteredMovies['rating'] = filteredMovies['id'].map(ratings)
 
-  # Agrupar por género y sumar las calificaciones para crear el perfil del usuario
-  genderCounts = filteredMovies.groupby('genre_id')['rating'].sum().to_dict()
+    # Agrupar por género y sumar las calificaciones para crear el perfil del usuario
+    genderCounts = filteredMovies.groupby('genre_ids')['rating'].sum().to_dict()
 
-  return genderCounts
+    return genderCounts
 
 
 def getScores(userProfile):
-  global dfMovies
+    global dfMovies
 
-  # Crear una Serie de pandas a partir del userProfile para facilitar la operación de mapeo
-  userProfileSeries = pd.Series(userProfile)
+    # Crear una Serie de pandas a partir del userProfile para facilitar la operación de mapeo
+    userProfileSeries = pd.Series(userProfile)
 
-  # Expandir las filas por géneros
-  dfExploded = dfMovies.explode('genre_id')
+    # Expandir las filas por géneros
+    dfExploded = dfMovies.explode('genre_ids')
 
-  # Mapear los géneros al perfil de usuario y llenar con 0 donde no haya coincidencias
-  dfExploded['genre_score'] = dfExploded['genre_id'].map(userProfileSeries).fillna(0)
+    # Mapear los géneros al perfil de usuario y llenar con 0 donde no haya coincidencias
+    dfExploded['genre_score'] = dfExploded['genre_ids'].map(userProfileSeries).fillna(0)
 
-  # Agrupar por id de película, sumar los scores de los géneros y convertir en diccionario
-  movieScores = dfExploded.groupby('id')['genre_score'].sum().astype(int).to_dict()
+    # Agrupar por id de película, sumar los scores de los géneros y convertir en diccionario
+    movieScores = dfExploded.groupby('id')['genre_score'].sum().astype(int).to_dict()
 
-  return movieScores
+    return movieScores
+
+
+def getExplanation(movie_id, userProfile, dfMovies):
+    # Obtener los géneros de la película como una lista de enteros
+    genres_ids = dfMovies.loc[dfMovies['id'] == movie_id, 'genre_ids'].values[0]
+    
+    # Si genres_ids es una cadena, convertimos a lista
+    if isinstance(genres_ids, str):
+        genres_ids = eval(genres_ids)
+
+    # Obtener nombres de géneros y puntajes, usando comprensión de listas
+    genre_names_scores = [
+        (genres_dict.get(genre_id, "Desconocido"), userProfile.get(genre_id, 0))
+        for genre_id in genres_ids
+    ]
+
+    # Filtrar géneros con puntajes positivos
+    genre_names, score_details = zip(*[(name, score) for name, score in genre_names_scores if score > 0]) if genre_names_scores else ([], [])
+
+    # Generar la explicación
+    if genre_names:
+        top_genres = ' y '.join(genre_names[:2])  # Los dos géneros más relevantes
+        explanation = f"Te la recomendamos porque está en las categorías de {top_genres}, que están entre tus favoritas según tus preferencias!"
+    else:
+        explanation = "Te recomendamos esta película debido a su popularidad."
+
+    return explanation
+
 
 
 @app.post("/recommender")
 def index(moviesRated: List[MovieOnDB]):
-  # Obtener el perfil del usuario basado en las películas calificadas
-  userProfile = getUserProfile(moviesRated)
-  # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
-  scores = getScores(userProfile)
-  
-  # Convertir la lista de IDs de películas calificadas a un conjunto para un acceso más rápido
-  ratedMoviesIds = {movie.idTmdb for movie in moviesRated}
-  
-  # Ordenar y filtrar las películas en una sola pasada
-  filtered_sorted_movies = [
-    (movieId, score) for movieId, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    if movieId not in ratedMoviesIds
-  ]
+    # Obtener el perfil del usuario basado en las películas calificadas
+    userProfile = getUserProfile(moviesRated)
+    # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
+    scores = getScores(userProfile)
 
-  # Crear la lista de recomendaciones con el formato {id, txt}
-  recommends = [
-    {
-      "id": str(id),
-      "txt": f"Este es el texto de la película con id {id}, con un score de {score}.",
-      "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
-      }
-    for id, score in filtered_sorted_movies[:10]
-  ]
-  
-  # Devolver la lista de recomendaciones como JSON
-  return {"Recommends": recommends}
+    # Convertir la lista de IDs de películas calificadas a un conjunto para un acceso más rápido
+    ratedMoviesIds = {movie.idTmdb for movie in moviesRated}
+
+    # Ordenar y filtrar las películas en una sola pasada
+    filtered_sorted_movies = [
+        (movieId, score) for movieId, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        if movieId not in ratedMoviesIds
+    ]
+
+    filtered_sorted_movies = filtered_sorted_movies[:10]
+
+    # Crear la lista de recomendaciones con el formato {id, txt}
+    recommends = [
+        {
+            "id": str(id),
+            "txt": getExplanation(id, userProfile, dfMovies),
+            "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
+        }
+        for id, score in filtered_sorted_movies
+    ]
+
+    # Devolver la lista de recomendaciones como JSON
+    return {"Recommends": recommends}
 
 
 @app.get("/testAllMovies")
@@ -188,39 +218,50 @@ def allMovies():
 
 
 if getMoviesFromTmdbApi():
-  print("Conection to TMDB -> success")
+    print("Conection to TMDB -> success")
   
-  #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
+    """ #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
   
-  recommends = []
-  moviesRated: List[MovieOnDB] = [
-    MovieOnDB(idTmdb=502356, rate=4),
-    MovieOnDB(idTmdb=1022789, rate=5),
-    MovieOnDB(idTmdb=350650, rate=2),
-    MovieOnDB(idTmdb=10957, rate=1),
-    MovieOnDB(idTmdb=25741, rate=5),
-    MovieOnDB(idTmdb=326215, rate=5),
-    MovieOnDB(idTmdb=422803, rate=2),
-    MovieOnDB(idTmdb=587562, rate=4),
-    MovieOnDB(idTmdb=10837, rate=3),
-    MovieOnDB(idTmdb=12903, rate=3),
+    recommends = []
+    moviesRated: List[MovieOnDB] = [
+        MovieOnDB(idTmdb=502356, rate=4),
+        MovieOnDB(idTmdb=1022789, rate=5),
+        MovieOnDB(idTmdb=350650, rate=2),
+        MovieOnDB(idTmdb=10957, rate=1),
+        MovieOnDB(idTmdb=25741, rate=5),
+        MovieOnDB(idTmdb=326215, rate=5),
+        MovieOnDB(idTmdb=422803, rate=2),
+        MovieOnDB(idTmdb=587562, rate=4),
+        MovieOnDB(idTmdb=10837, rate=3),
+        MovieOnDB(idTmdb=12903, rate=3),
     ]
-  
-  userProfile = getUserProfile(moviesRated)
-  scores = getScores(userProfile)
-  
-  sortedMovies = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-  
-  for id, score in sortedMovies[:10]:
-    #print(str(id) + " - " + str(score))
-    recommend = {
-      "id": str(id),
-      "txt": f"Este es el texto de la película con id {id} y con un score de {score}.",
-      "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
-    }
-    recommends.append(recommend)
-    
-  print(recommends)
+
+    # Obtener el perfil del usuario basado en las películas calificadas
+    userProfile = getUserProfile(moviesRated)
+    # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
+    scores = getScores(userProfile)
+
+    # Convertir la lista de IDs de películas calificadas a un conjunto para un acceso más rápido
+    ratedMoviesIds = {movie.idTmdb for movie in moviesRated}
+
+    # Ordenar y filtrar las películas en una sola pasada
+    filtered_sorted_movies = [
+        (movieId, score) for movieId, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
+        if movieId not in ratedMoviesIds
+    ]
+
+    filtered_sorted_movies = filtered_sorted_movies[:10]
+
+    # Crear la lista de recomendaciones con el formato {id, txt}
+    recommends = [
+        {
+            "id": str(id),
+            "txt": getExplanation(id, userProfile, dfMovies),
+            "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
+        }
+        for id, score in filtered_sorted_movies
+    ]
+    print(recommends) """
  
   
 else:
