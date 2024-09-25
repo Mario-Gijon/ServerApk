@@ -87,20 +87,11 @@ def getCsv():
   for movie in listOfAllMovies:
     if movie['poster_path'] is None:
       continue
-    #keywords = next((item['keywords'] for item in listOfKeywords if item['id'] == movieId), [])
-    #reviews = next((item['results'] for item in listOfReviews if item['id'] == movieId), [])
     movieData = {
       'id': movie['id'],
       'title': movie['title'],
-      #'overview': movie['overview'],
-      #'release_date': movie['release_date'],
       'genre_ids': movie['genre_ids'],
-      #'genre_name': [genres_dict[genre_id] for genre_id in movie['genre_ids']],
       'poster_path': IMG_PATH + movie['poster_path'] if movie['poster_path'] else 'No Image'
-      #'vote_average': movie['vote_average'],
-      #'vote_count': movie['vote_count'],
-      #'keywords': [keyword['name'] for keyword in keywords],
-      #'reviews': [{'author': review['author'], 'content': review['content'], 'rating': review['author_details'].get('rating')} for review in reviews]
     }
     
     dataset.append(movieData)
@@ -166,10 +157,14 @@ def getExplanation(movie_id, userProfile, dfMovies):
     # Filtrar géneros con puntajes positivos
     genre_names, score_details = zip(*[(name, score) for name, score in genre_names_scores if score > 0]) if genre_names_scores else ([], [])
 
+    # Excluir el género "Familiar" (con id 10751)
+    filtered_genres = [(name, score) for name, score in zip(genre_names, score_details) if name != "Familia"]
+
     # Generar la explicación
-    if genre_names:
-        top_genres = ' y '.join(genre_names[:2])  # Los dos géneros más relevantes
-        explanation = f"Te la recomendamos porque está en las categorías de {top_genres}, que están entre tus favoritas según tus preferencias!"
+    if filtered_genres:
+        # Tomar los dos primeros géneros más relevantes (excluyendo "Familia")
+        top_genres = ' y '.join([name for name, score in filtered_genres[:2]])
+        explanation = f"Porque está en las categorías de {top_genres}!"
     else:
         explanation = "Te recomendamos esta película debido a su popularidad."
 
@@ -219,50 +214,6 @@ def allMovies():
 
 if getMoviesFromTmdbApi():
     print("Conection to TMDB -> success")
-  
-    """ #Esto es para poder hacer las comprobaciones usando directamente la terminal y no el servidor
-  
-    recommends = []
-    moviesRated: List[MovieOnDB] = [
-        MovieOnDB(idTmdb=502356, rate=4),
-        MovieOnDB(idTmdb=1022789, rate=5),
-        MovieOnDB(idTmdb=350650, rate=2),
-        MovieOnDB(idTmdb=10957, rate=1),
-        MovieOnDB(idTmdb=25741, rate=5),
-        MovieOnDB(idTmdb=326215, rate=5),
-        MovieOnDB(idTmdb=422803, rate=2),
-        MovieOnDB(idTmdb=587562, rate=4),
-        MovieOnDB(idTmdb=10837, rate=3),
-        MovieOnDB(idTmdb=12903, rate=3),
-    ]
-
-    # Obtener el perfil del usuario basado en las películas calificadas
-    userProfile = getUserProfile(moviesRated)
-    # Obtener los puntajes de recomendación para todas las películas basándonos en el perfil del usuario
-    scores = getScores(userProfile)
-
-    # Convertir la lista de IDs de películas calificadas a un conjunto para un acceso más rápido
-    ratedMoviesIds = {movie.idTmdb for movie in moviesRated}
-
-    # Ordenar y filtrar las películas en una sola pasada
-    filtered_sorted_movies = [
-        (movieId, score) for movieId, score in sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        if movieId not in ratedMoviesIds
-    ]
-
-    filtered_sorted_movies = filtered_sorted_movies[:10]
-
-    # Crear la lista de recomendaciones con el formato {id, txt}
-    recommends = [
-        {
-            "id": str(id),
-            "txt": getExplanation(id, userProfile, dfMovies),
-            "img": dfMovies.loc[dfMovies['id'] == id, 'poster_path'].values[0]
-        }
-        for id, score in filtered_sorted_movies
-    ]
-    print(recommends) """
- 
   
 else:
   print("Error getting films from TMDB API")
