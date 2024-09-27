@@ -164,7 +164,7 @@ def getExplanation(movie_id, userProfile, dfMovies):
     if filtered_genres:
         # Tomar los dos primeros géneros más relevantes (excluyendo "Familia")
         top_genres = ' y '.join([name for name, score in filtered_genres[:2]])
-        explanation = f"Porque está en las categorías de {top_genres}!"
+        explanation = f"Porque está en las categorías de {top_genres}"
     else:
         explanation = "Te recomendamos esta película debido a su popularidad."
 
