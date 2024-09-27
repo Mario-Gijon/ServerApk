@@ -189,6 +189,8 @@ def index(moviesRated: List[MovieOnDB]):
     ]
 
     filtered_sorted_movies = filtered_sorted_movies[:10]
+    
+    print(filtered_sorted_movies)
 
     # Crear la lista de recomendaciones con el formato {id, txt}
     recommends = [
